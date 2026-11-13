@@ -77,7 +77,7 @@
         <!-- MAIN CONTAINER -->
         <main class="flex-1 max-w-3xl w-full mx-auto p-4 sm:p-6 flex flex-col gap-6 w-full">
             
-            <!-- SECURITY ALERT LOG (แสดงเฉพาะเจ้าของบ้าน เมื่อมีคนพยายามแอบเข้าตอนปิด) -->
+            <!-- SECURITY ALERT LOG -->
             <div id="security-alert-card" class="bg-red-500/10 border border-red-500/30 rounded-2xl p-4 shadow-lg hidden flex flex-col gap-2">
                 <div class="flex justify-between items-center">
                     <div class="flex items-center gap-2">
@@ -221,6 +221,7 @@
         const groceryListEl = document.getElementById('grocery-list');
         const itemCountEl = document.getElementById('item-count');
 
+        // ฟังก์ชันฟังสถานะสิทธิ์ Guest ตลอดเวลา (ไม่ว่าจะอยู่หน้า Login หรือกำลังใช้งานในโหมด Guest อยู่)
         function listenAppSettings() {
             if (unsubscribeSettings) unsubscribeSettings();
             unsubscribeSettings = onSnapshot(doc(db, "family_data", "app_settings"), (docSnap) => {
@@ -232,6 +233,16 @@
                     guestEnabledStatus = true;
                     lastAttemptTime = null;
                 }
+
+                // ถ้ากำลังใช้งานอยู่บน "โหมด Guest" แล้วเจ้าของบ้านกดปิดสวิตช์ ให้ดีดหลุดออกหน้า Login ทันที!
+                if (currentMode === 'guest' && !guestEnabledStatus) {
+                    alert("⚠️ เจ้าของบ้านได้ปิดการใช้งานโหมด Guest แล้ว ระบบจะนำคุณออกจากระบบ");
+                    currentMode = null;
+                    localStorage.removeItem('shopping_mode');
+                    updateUI();
+                    return;
+                }
+
                 updateLoginScreenGuestUI();
                 updateSecurityAlertUI();
             });
@@ -265,11 +276,13 @@
                 loginScreen.classList.remove('hidden');
                 appWrapper.classList.add('hidden');
                 if (unsubscribeSnapshot) unsubscribeSnapshot();
-                listenAppSettings();
+                listenAppSettings(); // เปิดฟังค่าที่หน้า Login
             } else {
                 loginScreen.classList.add('hidden');
                 appWrapper.classList.remove('hidden');
-                if (unsubscribeSettings) unsubscribeSettings();
+                
+                // เริ่มเปิดฟังค่าการตั้งค่าแม้จะอยู่ในโหมด Guest หรือครอบครัว เพื่อตรวจจับการปิดสวิตช์แบบ Realtime
+                listenAppSettings();
 
                 if (currentMode === 'family') {
                     headerTitle.innerText = "รายการซื้อของเข้าบ้าน";
@@ -279,7 +292,6 @@
                     headerIcon.className = "bg-emerald-600 text-white p-2.5 rounded-xl font-bold text-xl shadow";
                     adminSettingsCard.classList.remove('hidden');
                     guestToggleSwitch.checked = guestEnabledStatus;
-                    listenAppSettings(); // เปิดฟังค่าต่อเพื่อให้หน้า Admin เห็นแจ้งเตือน Realtime
                 } else {
                     headerTitle.innerText = "รายการซื้อของ (โหมด Guest)";
                     headerSubtitle.innerText = "ซิงค์เรียลไทม์ • สำหรับบุคคลภายนอก/แขก";
@@ -306,7 +318,6 @@
             }
         });
 
-        // ปุ่มล้างประวัติแจ้งเตือนความปลอดภัย
         clearLogsBtn.addEventListener('click', async () => {
             lastAttemptTime = null;
             try {
@@ -334,10 +345,8 @@
             }
         });
 
-        // เมื่อมีคนพยายามกดเข้าโหมด Guest ตอนที่ปิดสวิตช์อยู่
         guestLoginBtn.addEventListener('click', async () => {
             if (!guestEnabledStatus) {
-                // บันทึกเวลาที่พยายามเข้าขึ้น Cloud ทันที
                 try {
                     await setDoc(doc(db, "family_data", "app_settings"), {
                         guestEnabled: false,
