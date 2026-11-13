@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Family Grocery List - ซื้อของเข้าบ้าน</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Sarabun', sans-serif; }
+    </style>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col">
+
+    <!-- LOGIN SCREEN -->
+    <div id="login-screen" class="fixed inset-0 bg-slate-950 flex items-center justify-center p-4 z-50">
+        <div class="bg-slate-800 border border-slate-700 rounded-2xl w-full max-w-md p-8 shadow-2xl flex flex-col gap-6">
+            <div class="text-center space-y-2">
+                <div class="inline-block bg-emerald-600 text-white p-3 rounded-2xl font-bold text-2xl shadow-lg mb-2">🛒</div>
+                <h1 class="text-2xl font-bold text-slate-100">รายการซื้อของเข้าบ้าน</h1>
+                <p class="text-xs text-slate-400">กรุณากรอกรหัสผ่านกลางของบ้านเพื่อเข้าใช้งาน</p>
+            </div>
+            
+            <form id="login-form" class="space-y-4">
+                <div>
+                    <label class="block text-xs text-slate-400 mb-1">รหัสผ่านกลาง</label>
+                    <input type="password" id="login-password-input" placeholder="กรอกรหัสผ่าน..." required
+                        class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-sm text-slate-200 focus:outline-none focus:border-emerald-500 font-mono">
+                </div>
+                <div id="login-error" class="text-red-400 text-xs hidden text-center">❌ รหัสผ่านไม่ถูกต้อง กรุณาลองใหม่อีกครั้ง</div>
+                
+                <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white py-3 rounded-xl font-medium text-sm transition shadow cursor-pointer">
+                    เข้าสู่ระบบ
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- MAIN APP WRAPPER -->
+    <div id="app-wrapper" class="hidden flex-1 flex flex-col">
+        <!-- HEADER -->
+        <header class="bg-slate-800 border-b border-slate-700 py-4 px-6 shadow-md">
+            <div class="max-w-3xl mx-auto flex justify-between items-center">
+                <div class="flex items-center space-x-3">
+                    <div class="bg-emerald-600 text-white p-2.5 rounded-xl font-bold text-xl shadow">🛒</div>
+                    <div>
+                        <h1 class="text-xl font-bold tracking-wide">รายการซื้อของเข้าบ้าน</h1>
+                        <p class="text-xs text-slate-400">ซิงค์เรียลไทม์</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-3">
+                    <div class="text-xs bg-slate-700/60 border border-slate-600 px-3 py-1.5 rounded-lg text-emerald-400 font-medium">
+                        🟢 พร้อมใช้งาน
+                    </div>
+                    <button id="logout-btn" class="bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 text-xs px-3 py-1.5 rounded-lg font-medium transition cursor-pointer">
+                        ออกจากระบบ
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- MAIN CONTAINER -->
+        <main class="flex-1 max-w-3xl w-full mx-auto p-4 sm:p-6 flex flex-col gap-6 w-full">
+            
+            <!-- ADD ITEM FORM & QUICK BUTTONS -->
+            <div class="bg-slate-800 border border-slate-700 rounded-2xl p-5 shadow-xl flex flex-col gap-4">
+                <h2 class="text-sm font-bold text-emerald-400">➕ เพิ่มรายการของที่ต้องซื้อ</h2>
+                
+                <!-- Quick Buttons -->
+                <div>
+                    <span class="block text-xs text-slate-400 mb-2">⚡ ปุ่มลัดของใช้ประจำบ้าน:</span>
+                    <div class="flex flex-wrap gap-1.5">
+                        <button type="button" onclick="setQuickItem('นมจืด', 'food')" class="bg-slate-700 hover:bg-slate-600 text-slate-200 text-xs px-3 py-1 rounded-md transition cursor-pointer">🥛 นมจืด</button>
+                        <button type="button" onclick="setQuickItem('ไข่ไก่', 'food')" class="bg-slate-700 hover:bg-slate-600 text-slate-200 text-xs px-3 py-1 rounded-md transition cursor-pointer">🥚 ไข่ไก่</button>
+                        <button type="button" onclick="setQuickItem('ทิชชูเปียก', 'household')" class="bg-slate-700 hover:bg-slate-600 text-slate-200 text-xs px-3 py-1 rounded-md transition cursor-pointer">🧻 ทิชชูเปียก</button>
+                        <button type="button" onclick="setQuickItem('ทิชชูแห้ง', 'household')" class="bg-slate-700 hover:bg-slate-600 text-slate-200 text-xs px-3 py-1 rounded-md transition cursor-pointer">🧻 ทิชชูแห้ง</button>
+                        <button type="button" onclick="setQuickItem('เนื้อไก่', 'food')" class="bg-slate-700 hover:bg-slate-600 text-slate-200 text-xs px-3 py-1 rounded-md transition cursor-pointer">🍗 เนื้อไก่</button>
+                        <button type="button" onclick="setQuickItem('เนื้อหมู', 'food')" class="bg-slate-700 hover:bg-slate-600 text-slate-200 text-xs px-3 py-1 rounded-md transition cursor-pointer">🥩 เนื้อหมู</button>
+                        <button type="button" onclick="setQuickItem('ปลาสด', 'food')" class="bg-slate-700 hover:bg-slate-600 text-slate-200 text-xs px-3 py-1 rounded-md transition cursor-pointer">🐟 ปลาสด</button>
+                        <button type="button" onclick="setQuickItem('กุ้งสด', 'food')" class="bg-slate-700 hover:bg-slate-600 text-slate-200 text-xs px-3 py-1 rounded-md transition cursor-pointer">🦐 กุ้งสด</button>
+                        <button type="button" onclick="setQuickItem('ผงซักฟอก', 'household')" class="bg-slate-700 hover:bg-slate-600 text-slate-200 text-xs px-3 py-1 rounded-md transition cursor-pointer">📦 ผงซักฟอก</button>
+                        <button type="button" onclick="setQuickItem('น้ำยาปรับผ้านุ่ม', 'household')" class="bg-slate-700 hover:bg-slate-600 text-slate-200 text-xs px-3 py-1 rounded-md transition cursor-pointer">🌸 น้ำยาปรับผ้านุ่ม</button>
+                        <button type="button" onclick="setQuickItem('สบู่', 'household')" class="bg-slate-700 hover:bg-slate-600 text-slate-200 text-xs px-3 py-1 rounded-md transition cursor-pointer">🧼 สบู่</button>
+                        <button type="button" onclick="setQuickItem('ยาสีฟัน', 'household')" class="bg-slate-700 hover:bg-slate-600 text-slate-200 text-xs px-3 py-1 rounded-md transition cursor-pointer">🪥 ยาสีฟัน</button>
+                        <button type="button" onclick="setQuickItem('ครีมอาบน้ำ', 'household')" class="bg-slate-700 hover:bg-slate-600 text-slate-200 text-xs px-3 py-1 rounded-md transition cursor-pointer">🧴 ครีมอาบน้ำ</button>
+                    </div>
+                </div>
+
+                <form id="grocery-form" class="flex flex-col sm:flex-row gap-3 pt-2 border-t border-slate-700/60">
+                    <input type="text" id="item-name" placeholder="ชื่อสินค้า เช่น ผักบุ้ง, น้ำยาล้างจาน..." required
+                        class="flex-1 bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-slate-200 focus:outline-none focus:border-emerald-500">
+                    
+                    <select id="item-category" class="bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-slate-200 focus:outline-none focus:border-emerald-500">
+                        <option value="food">🍲 อาหาร / ของสด</option>
+                        <option value="household">🧽 ของใช้ในบ้าน</option>
+                        <option value="other">📦 อื่น ๆ</option>
+                    </select>
+
+                    <button type="submit" class="bg-emerald-600 hover:bg-emerald-500 text-white font-medium px-5 py-2.5 rounded-xl text-sm transition cursor-pointer shadow">
+                        เพิ่มลงลิสต์
+                    </button>
+                </form>
+            </div>
+
+            <!-- GROCERY LIST CONTAINER -->
+            <div class="bg-slate-800/50 border border-slate-700 rounded-2xl p-5 shadow-xl flex-1 flex flex-col gap-4">
+                <div class="flex justify-between items-center border-b border-slate-700 pb-3">
+                    <h3 class="font-bold text-slate-200">📋 รายการที่ต้องซื้อทั้งหมด</h3>
+                    <span id="item-count" class="text-xs bg-slate-700 text-slate-300 px-2.5 py-1 rounded-full font-mono">0 รายการ</span>
+                </div>
+
+                <div id="grocery-list" class="space-y-2.5">
+                    <p class="text-xs text-slate-500 text-center py-6 italic">กำลังโหลดข้อมูลรายการ...</p>
+                </div>
+            </div>
+
+        </main>
+
+        <footer class="bg-slate-800 border-t border-slate-700 py-3 text-center text-xs text-slate-500">
+            Family Grocery Cloud • พัฒนาจากโปรเจกต์ครอบครัว 🚀
+        </footer>
+    </div>
+
+    <!-- SCRIPT & FIREBASE -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDKFcJbaRz7AGWXjDzUNAtTd3FTn28IpkE",
+            authDomain: "tp-family-calendar.firebaseapp.com",
+            projectId: "tp-family-calendar",
+            storageBucket: "tp-family-calendar.firebasestorage.app",
+            messagingSenderId: "954517123309",
+            appId: "1:954517123309:web:7293108d4ced523aa2dce4"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        const CENTRAL_PASSWORD = "Tp240356";
+        let groceryItems = [];
+
+        const categoryMeta = {
+            food: { name: '🍲 อาหาร/ของสด', color: 'bg-amber-500/10 text-amber-300 border-amber-500/30' },
+            household: { name: '🧽 ของใช้ในบ้าน', color: 'bg-blue-500/10 text-blue-300 border-blue-500/30' },
+            other: { name: '📦 อื่น ๆ', color: 'bg-purple-500/10 text-purple-300 border-purple-500/30' }
+        };
+
+        const loginScreen = document.getElementById('login-screen');
+        const appWrapper = document.getElementById('app-wrapper');
+        const loginForm = document.getElementById('login-form');
+        const loginPasswordInput = document.getElementById('login-password-input');
+        const loginError = document.getElementById('login-error');
+        const logoutBtn = document.getElementById('logout-btn');
+
+        const itemNameInput = document.getElementById('item-name');
+        const itemCategorySelect = document.getElementById('item-category');
+        const groceryForm = document.getElementById('grocery-form');
+        const groceryListEl = document.getElementById('grocery-list');
+        const itemCountEl = document.getElementById('item-count');
+
+        // ฟังก์ชันตรวจสอบสถานะการเข้าสู่ระบบแบบกระชับ
+        function updateAuthUI() {
+            const isAuth = localStorage.getItem('grocery_auth') === 'true';
+            if (isAuth) {
+                loginScreen.classList.add('hidden');
+                appWrapper.classList.remove('hidden');
+            } else {
+                loginScreen.classList.remove('hidden');
+                appWrapper.classList.add('hidden');
+            }
+        }
+
+        loginForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const enteredVal = loginPasswordInput.value.trim();
+            if (enteredVal === CENTRAL_PASSWORD) {
+                localStorage.setItem('grocery_auth', 'true');
+                loginPasswordInput.value = '';
+                loginError.classList.add('hidden');
+                updateAuthUI();
+            } else {
+                loginError.classList.remove('hidden');
+                loginPasswordInput.value = '';
+            }
+        });
+
+        logoutBtn.addEventListener('click', () => {
+            localStorage.removeItem('grocery_auth');
+            updateAuthUI();
+        });
+
+        window.setQuickItem = function(name, cat) {
+            itemNameInput.value = name;
+            itemCategorySelect.value = cat;
+            itemNameInput.focus();
+        };
+
+        async function saveGroceryToCloud() {
+            try {
+                await setDoc(doc(db, "family_data", "grocery_list"), {
+                    items: groceryItems
+                });
+            } catch (error) {
+                console.error("Error saving grocery: ", error);
+            }
+        }
+
+        function checkAndFilterExpiredItems(items) {
+            const TWO_HOURS = 2 * 60 * 60 * 1000;
+            const now = Date.now();
+            let hasChanged = false;
+
+            const filtered = items.filter(item => {
+                if (item.completed && item.completedAt) {
+                    if (now - item.completedAt > TWO_HOURS) {
+                        hasChanged = true;
+                        return false;
+                    }
+                }
+                return true;
+            });
+
+            if (hasChanged) {
+                groceryItems = filtered;
+                saveGroceryToCloud();
+            }
+
+            return filtered;
+        }
+
+        onSnapshot(doc(db, "family_data", "grocery_list"), (docSnap) => {
+            if (docSnap.exists()) {
+                const rawItems = docSnap.data().items || [];
+                groceryItems = checkAndFilterExpiredItems(rawItems);
+            } else {
+                groceryItems = [
+                    { id: 1, name: 'นมจืด', category: 'food', completed: false, completedAt: null },
+                    { id: 2, name: 'ไข่ไก่', category: 'food', completed: false, completedAt: null }
+                ];
+                saveGroceryToCloud();
+            }
+            renderGroceryList();
+        });
+
+        setInterval(() => {
+            if (groceryItems.length > 0) {
+                checkAndFilterExpiredItems(groceryItems);
+                renderGroceryList();
+            }
+        }, 60 * 1000);
+
+        groceryForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const name = itemNameInput.value.trim();
+            const category = itemCategorySelect.value;
+            if (!name) return;
+
+            const newItem = {
+                id: Date.now(),
+                name: name,
+                category: category,
+                completed: false,
+                completedAt: null
+            };
+
+            groceryItems.unshift(newItem);
+            saveGroceryToCloud();
+
+            itemNameInput.value = '';
+            itemNameInput.focus();
+        });
+
+        window.toggleComplete = function(id) {
+            const now = Date.now();
+            groceryItems = groceryItems.map(item => {
+                if (item.id === id) {
+                    const nextCompleted = !item.completed;
+                    return { 
+                        ...item, 
+                        completed: nextCompleted, 
+                        completedAt: nextCompleted ? now : null 
+                    };
+                }
+                return item;
+            });
+            saveGroceryToCloud();
+        };
+
+        window.deleteItem = function(id) {
+            groceryItems = groceryItems.filter(item => item.id !== id);
+            saveGroceryToCloud();
+        };
+
+        function renderGroceryList() {
+            groceryListEl.innerHTML = '';
+            itemCountEl.innerText = `${groceryItems.length} รายการ`;
+
+            if (groceryItems.length === 0) {
+                groceryListEl.innerHTML = '<p class="text-xs text-slate-500 text-center py-8 italic">เย้! ไม่มีรายการของที่ต้องซื้อในตอนนี้</p>';
+                return;
+            }
+
+            groceryItems.forEach(item => {
+                const catInfo = categoryMeta[item.category] || categoryMeta.other;
+                const div = document.createElement('div');
+                div.className = `flex justify-between items-center p-3 rounded-xl border transition bg-slate-900/60 border-slate-700/80 ${item.completed ? 'opacity-50' : ''}`;
+                
+                div.innerHTML = `
+                    <div class="flex items-center gap-3">
+                        <input type="checkbox" ${item.completed ? 'checked' : ''} onchange="toggleComplete(${item.id})"
+                            class="w-4 h-4 accent-emerald-500 rounded cursor-pointer">
+                        <div>
+                            <p class="text-sm font-medium ${item.completed ? 'line-through text-slate-400' : 'text-slate-200'}">${item.name}</p>
+                            <span class="text-[10px] px-2 py-0.5 rounded-full border ${catInfo.color}">${catInfo.name}</span>
+                        </div>
+                    </div>
+                    <button onclick="deleteItem(${item.id})" class="text-slate-400 hover:text-red-400 text-xs px-2 py-1 cursor-pointer transition">ลบ</button>
+                `;
+                groceryListEl.appendChild(div);
+            });
+        }
+
+        // เริ่มต้นตรวจสอบสิทธิ์ทันทีที่โหลดหน้าเว็บ
+        updateAuthUI();
+    </script>
+</body>
+</html>
