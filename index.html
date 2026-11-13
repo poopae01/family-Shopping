@@ -45,4 +45,471 @@
                     👥 เข้าใช้งานแบบโหมด Guest (บุคคลภายนอก)
                 </button>
             </div>
-            <div id="guest-disabled-notice" class="text-center text-xs text-red-400/8
+            <div id="guest-disabled-notice" class="text-center text-xs text-red-400/80 hidden bg-red-500/10 border border-red-500/20 py-2.5 rounded-xl">
+                🔒 โหมด Guest ถูกปิดใช้งานโดยผู้ดูแลระบบของบ้าน
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN APP WRAPPER -->
+    <div id="app-wrapper" class="hidden flex-1 flex flex-col">
+        <!-- HEADER -->
+        <header class="bg-slate-800 border-b border-slate-700 py-4 px-6 shadow-md">
+            <div class="max-w-3xl mx-auto flex justify-between items-center">
+                <div class="flex items-center space-x-3">
+                    <div id="header-icon" class="bg-emerald-600 text-white p-2.5 rounded-xl font-bold text-xl shadow">🛒</div>
+                    <div>
+                        <h1 id="header-title" class="text-xl font-bold tracking-wide">รายการซื้อของเข้าบ้าน</h1>
+                        <p id="header-subtitle" class="text-xs text-slate-400">ซิงค์เรียลไทม์ • โหมดครอบครัว</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-3">
+                    <div id="mode-badge" class="text-xs bg-emerald-500/10 border border-emerald-500/30 px-3 py-1.5 rounded-lg text-emerald-400 font-medium">
+                        🏠 ครอบครัว
+                    </div>
+                    <button id="logout-btn" class="bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 text-xs px-3 py-1.5 rounded-lg font-medium transition cursor-pointer">
+                        เปลี่ยนโหมด / ออก
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- MAIN CONTAINER -->
+        <main class="flex-1 max-w-3xl w-full mx-auto p-4 sm:p-6 flex flex-col gap-6 w-full">
+            
+            <!-- SECURITY ALERT LOG -->
+            <div id="security-alert-card" class="bg-red-500/10 border border-red-500/30 rounded-2xl p-4 shadow-lg hidden flex flex-col gap-2">
+                <div class="flex justify-between items-center">
+                    <div class="flex items-center gap-2">
+                        <span class="text-red-400 text-lg">⚠️</span>
+                        <h3 class="text-xs font-bold text-red-300">แจ้งเตือนความปลอดภัย: มีความพยายามเข้าใช้งานโหมด Guest</h3>
+                    </div>
+                    <button id="clear-logs-btn" class="text-[11px] text-slate-400 hover:text-slate-200 underline cursor-pointer">ล้างประวัติ</button>
+                </div>
+                <p id="security-log-text" class="text-xs text-slate-300 pl-6">ยังไม่มีประวัติการพยายามบุกรุก</p>
+            </div>
+
+            <!-- ADMIN SETTING: GUEST TOGGLE -->
+            <div id="admin-settings-card" class="bg-slate-800/80 border border-slate-700 rounded-2xl p-4 shadow-lg flex justify-between items-center hidden">
+                <div class="flex items-center gap-3">
+                    <span class="text-lg">🛡️</span>
+                    <div>
+                        <h3 class="text-xs font-bold text-slate-200">ตั้งค่าความปลอดภัยโหมด Guest</h3>
+                        <p class="text-[11px] text-slate-400">เปิด/ปิด อนุญาตให้บุคคลภายนอกเข้าใช้งานโหมด Guest</p>
+                    </div>
+                </div>
+                <label class="relative inline-flex items-center cursor-pointer">
+                    <input type="checkbox" id="guest-toggle-switch" class="sr-only peer">
+                    <div class="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600"></div>
+                </label>
+            </div>
+
+            <!-- ADD ITEM FORM & QUICK BUTTONS -->
+            <div class="bg-slate-800 border border-slate-700 rounded-2xl p-5 shadow-xl flex flex-col gap-4">
+                <h2 class="text-sm font-bold text-emerald-400">➕ เพิ่มรายการของที่ต้องซื้อ</h2>
+                
+                <!-- Quick Buttons -->
+                <div>
+                    <span class="block text-xs text-slate-400 mb-2">⚡ ปุ่มลัดของใช้ประจำบ้าน:</span>
+                    <div class="flex flex-wrap gap-1.5">
+                        <button type="button" onclick="setQuickItem('นมจืด', 'food')" class="bg-slate-700 hover:bg-slate-600 text-slate-200 text-xs px-3 py-1 rounded-md transition cursor-pointer">🥛 นมจืด</button>
+                        <button type="button" onclick="setQuickItem('ไข่ไก่', 'food')" class="bg-slate-700 hover:bg-slate-600 text-slate-200 text-xs px-3 py-1 rounded-md transition cursor-pointer">🥚 ไข่ไก่</button>
+                        <button type="button" onclick="setQuickItem('ทิชชูเปียก', 'household')" class="bg-slate-700 hover:bg-slate-600 text-slate-200 text-xs px-3 py-1 rounded-md transition cursor-pointer">🧻 ทิชชูเปียก</button>
+                        <button type="button" onclick="setQuickItem('ทิชชูแห้ง', 'household')" class="bg-slate-700 hover:bg-slate-600 text-slate-200 text-xs px-3 py-1 rounded-md transition cursor-pointer">🧻 ทิชชูแห้ง</button>
+                        <button type="button" onclick="setQuickItem('เนื้อไก่', 'food')" class="bg-slate-700 hover:bg-slate-600 text-slate-200 text-xs px-3 py-1 rounded-md transition cursor-pointer">🍗 เนื้อไก่</button>
+                        <button type="button" onclick="setQuickItem('เนื้อหมู', 'food')" class="bg-slate-700 hover:bg-slate-600 text-slate-200 text-xs px-3 py-1 rounded-md transition cursor-pointer">🥩 เนื้อหมู</button>
+                        <button type="button" onclick="setQuickItem('ปลาสด', 'food')" class="bg-slate-700 hover:bg-slate-600 text-slate-200 text-xs px-3 py-1 rounded-md transition cursor-pointer">🐟 ปลาสด</button>
+                        <button type="button" onclick="setQuickItem('กุ้งสด', 'food')" class="bg-slate-700 hover:bg-slate-600 text-slate-200 text-xs px-3 py-1 rounded-md transition cursor-pointer">🦐 กุ้งสด</button>
+                        <button type="button" onclick="setQuickItem('ผงซักฟอก', 'household')" class="bg-slate-700 hover:bg-slate-600 text-slate-200 text-xs px-3 py-1 rounded-md transition cursor-pointer">📦 ผงซักฟอก</button>
+                        <button type="button" onclick="setQuickItem('น้ำยาปรับผ้านุ่ม', 'household')" class="bg-slate-700 hover:bg-slate-600 text-slate-200 text-xs px-3 py-1 rounded-md transition cursor-pointer">🌸 น้ำยาปรับผ้านุ่ม</button>
+                        <button type="button" onclick="setQuickItem('สบู่', 'household')" class="bg-slate-700 hover:bg-slate-600 text-slate-200 text-xs px-3 py-1 rounded-md transition cursor-pointer">🧼 สบู่</button>
+                        <button type="button" onclick="setQuickItem('ยาสีฟัน', 'household')" class="bg-slate-700 hover:bg-slate-600 text-slate-200 text-xs px-3 py-1 rounded-md transition cursor-pointer">🪥 ยาสีฟัน</button>
+                        <button type="button" onclick="setQuickItem('ครีมอาบน้ำ', 'household')" class="bg-slate-700 hover:bg-slate-600 text-slate-200 text-xs px-3 py-1 rounded-md transition cursor-pointer">🧴 ครีมอาบน้ำ</button>
+                    </div>
+                </div>
+
+                <form id="grocery-form" class="flex flex-col sm:flex-row gap-3 pt-2 border-t border-slate-700/60">
+                    <input type="text" id="item-name" placeholder="ชื่อสินค้า เช่น ผักบุ้ง, น้ำยาล้างจาน..." required
+                        class="flex-1 bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-slate-200 focus:outline-none focus:border-emerald-500">
+                    
+                    <select id="item-category" class="bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-slate-200 focus:outline-none focus:border-emerald-500">
+                        <option value="food">🍲 อาหาร / ของสด</option>
+                        <option value="household">🧽 ของใช้ในบ้าน</option>
+                        <option value="other">📦 อื่น ๆ</option>
+                    </select>
+
+                    <button type="submit" class="bg-emerald-600 hover:bg-emerald-500 text-white font-medium px-5 py-2.5 rounded-xl text-sm transition cursor-pointer shadow">
+                        เพิ่มลงลิสต์
+                    </button>
+                </form>
+            </div>
+
+            <!-- GROCERY LIST CONTAINER -->
+            <div class="bg-slate-800/50 border border-slate-700 rounded-2xl p-5 shadow-xl flex-1 flex flex-col gap-4">
+                <div class="flex justify-between items-center border-b border-slate-700 pb-3">
+                    <h3 class="font-bold text-slate-200">📋 รายการที่ต้องซื้อทั้งหมด</h3>
+                    <span id="item-count" class="text-xs bg-slate-700 text-slate-300 px-2.5 py-1 rounded-full font-mono">0 รายการ</span>
+                </div>
+
+                <div id="grocery-list" class="space-y-2.5">
+                    <p class="text-xs text-slate-500 text-center py-6 italic">กำลังโหลดข้อมูลรายการ...</p>
+                </div>
+            </div>
+
+        </main>
+
+        <footer class="bg-slate-800 border-t border-slate-700 py-3 text-center text-xs text-slate-500">
+            Family & Guest Shopping Cloud • พัฒนาต่อยอดจากโปรเจกต์ครอบครัว 🚀
+        </footer>
+    </div>
+
+    <!-- SCRIPT & FIREBASE -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDKFcJbaRz7AGWXjDzUNAtTd3FTn28IpkE",
+            authDomain: "tp-family-calendar.firebaseapp.com",
+            projectId: "tp-family-calendar",
+            storageBucket: "tp-family-calendar.firebasestorage.app",
+            messagingSenderId: "954517123309",
+            appId: "1:954517123309:web:7293108d4ced523aa2dce4"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        const CENTRAL_PASSWORD = "Tp240356";
+        let groceryItems = [];
+        let unsubscribeSnapshot = null;
+        let guestEnabledStatus = true;
+        let lastAttemptTime = null;
+
+        // ดึงค่าโหมดจาก localStorage มาตรวจสอบ
+        let currentMode = localStorage.getItem('shopping_mode') || null;
+
+        const categoryMeta = {
+            food: { name: '🍲 อาหาร/ของสด', color: 'bg-amber-500/10 text-amber-300 border-amber-500/30' },
+            household: { name: '🧽 ของใช้ในบ้าน', color: 'bg-blue-500/10 text-blue-300 border-blue-500/30' },
+            other: { name: '📦 อื่น ๆ', color: 'bg-purple-500/10 text-purple-300 border-purple-500/30' }
+        };
+
+        const loginScreen = document.getElementById('login-screen');
+        const appWrapper = document.getElementById('app-wrapper');
+        const loginForm = document.getElementById('login-form');
+        const loginPasswordInput = document.getElementById('login-password-input');
+        const loginError = document.getElementById('login-error');
+        const guestLoginBtn = document.getElementById('guest-login-btn');
+        const guestContainer = document.getElementById('guest-container');
+        const guestDisabledNotice = document.getElementById('guest-disabled-notice');
+        const logoutBtn = document.getElementById('logout-btn');
+
+        const headerTitle = document.getElementById('header-title');
+        const headerSubtitle = document.getElementById('header-subtitle');
+        const modeBadge = document.getElementById('mode-badge');
+        const headerIcon = document.getElementById('header-icon');
+        const adminSettingsCard = document.getElementById('admin-settings-card');
+        const guestToggleSwitch = document.getElementById('guest-toggle-switch');
+        const securityAlertCard = document.getElementById('security-alert-card');
+        const securityLogText = document.getElementById('security-log-text');
+        const clearLogsBtn = document.getElementById('clear-logs-btn');
+
+        const itemNameInput = document.getElementById('item-name');
+        const itemCategorySelect = document.getElementById('item-category');
+        const groceryForm = document.getElementById('grocery-form');
+        const groceryListEl = document.getElementById('grocery-list');
+        const itemCountEl = document.getElementById('item-count');
+
+        // ฟังก์ชันอัปเดตหน้าจอหลักและหน้าล็อกอิน
+        function updateUI() {
+            if (!currentMode) {
+                loginScreen.classList.remove('hidden');
+                appWrapper.classList.add('hidden');
+                if (unsubscribeSnapshot) unsubscribeSnapshot();
+            } else {
+                loginScreen.classList.add('hidden');
+                appWrapper.classList.remove('hidden');
+
+                if (currentMode === 'family') {
+                    headerTitle.innerText = "รายการซื้อของเข้าบ้าน";
+                    headerSubtitle.innerText = "ซิงค์เรียลไทม์ • โหมดครอบครัว (Admin)";
+                    modeBadge.className = "text-xs bg-emerald-500/10 border border-emerald-500/30 px-3 py-1.5 rounded-lg text-emerald-400 font-medium";
+                    modeBadge.innerText = "🏠 ครอบครัว";
+                    headerIcon.className = "bg-emerald-600 text-white p-2.5 rounded-xl font-bold text-xl shadow";
+                    adminSettingsCard.classList.remove('hidden');
+                    guestToggleSwitch.checked = guestEnabledStatus;
+                } else {
+                    headerTitle.innerText = "รายการซื้อของ (โหมด Guest)";
+                    headerSubtitle.innerText = "ซิงค์เรียลไทม์ • สำหรับบุคคลภายนอก/แขก";
+                    modeBadge.className = "text-xs bg-sky-500/10 border border-sky-500/30 px-3 py-1.5 rounded-lg text-sky-400 font-medium";
+                    modeBadge.innerText = "👥 โหมด Guest";
+                    headerIcon.className = "bg-sky-600 text-white p-2.5 rounded-xl font-bold text-xl shadow";
+                    adminSettingsCard.classList.add('hidden');
+                    securityAlertCard.classList.add('hidden');
+                }
+
+                loadDataFromCloud(currentMode);
+            }
+        }
+
+        // ดักฟังสถานะความปลอดภัยแบบ Realtime
+        onSnapshot(doc(db, "family_data", "app_settings"), (docSnap) => {
+            if (docSnap.exists()) {
+                const data = docSnap.data();
+                guestEnabledStatus = data.guestEnabled !== false;
+                lastAttemptTime = data.lastAttempt || null;
+            } else {
+                guestEnabledStatus = true;
+                lastAttemptTime = null;
+            }
+
+            // ถ้ากำลังอยู่โหมด Guest แล้วเจ้าของบ้านกดปิดสวิตช์ ให้เตือนและเด้งออกทันที
+            if (currentMode === 'guest' && !guestEnabledStatus) {
+                alert("⚠️ เจ้าของบ้านได้ปิดการใช้งานโหมด Guest แล้ว ระบบจะนำคุณออกจากระบบ");
+                currentMode = null;
+                localStorage.removeItem('shopping_mode');
+                updateUI();
+                return;
+            }
+
+            updateLoginScreenGuestUI();
+            updateSecurityAlertUI();
+            if (currentMode === 'family') {
+                guestToggleSwitch.checked = guestEnabledStatus;
+            }
+        });
+
+        function updateLoginScreenGuestUI() {
+            if (guestEnabledStatus) {
+                guestContainer.classList.remove('hidden');
+                guestDisabledNotice.classList.add('hidden');
+            } else {
+                guestContainer.classList.add('hidden');
+                guestDisabledNotice.classList.remove('hidden');
+            }
+        }
+
+        function updateSecurityAlertUI() {
+            if (currentMode === 'family' && lastAttemptTime) {
+                const timeString = new Date(lastAttemptTime).toLocaleString('th-TH', { 
+                    dateStyle: 'short', 
+                    timeStyle: 'medium' 
+                });
+                securityLogText.innerText = `มีผู้พยายามเข้าใช้งานล่าสุดเมื่อ: ${timeString}`;
+                securityAlertCard.classList.remove('hidden');
+            } else {
+                securityAlertCard.classList.add('hidden');
+            }
+        }
+
+        guestToggleSwitch.addEventListener('change', async () => {
+            guestEnabledStatus = guestToggleSwitch.checked;
+            try {
+                await setDoc(doc(db, "family_data", "app_settings"), {
+                    guestEnabled: guestEnabledStatus,
+                    lastAttempt: lastAttemptTime
+                }, { merge: true });
+            } catch (error) {
+                console.error("Error updating settings:", error);
+            }
+        });
+
+        clearLogsBtn.addEventListener('click', async () => {
+            lastAttemptTime = null;
+            try {
+                await setDoc(doc(db, "family_data", "app_settings"), {
+                    guestEnabled: guestEnabledStatus,
+                    lastAttempt: null
+                }, { merge: true });
+                securityAlertCard.classList.add('hidden');
+            } catch (error) {
+                console.error("Error clearing log:", error);
+            }
+        });
+
+        // จัดการฟอร์ม Login ครอบครัว (เพิ่มการเซฟลง localStorage ให้แน่ใจและสั่งอัปเดต UI ทันที)
+        loginForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const enteredPassword = loginPasswordInput.value.trim();
+            if (enteredPassword === CENTRAL_PASSWORD) {
+                currentMode = 'family';
+                localStorage.setItem('shopping_mode', 'family');
+                loginPasswordInput.value = '';
+                loginError.classList.add('hidden');
+                updateUI(); // สลับเข้าหน้าหลักทันที
+            } else {
+                loginError.classList.remove('hidden');
+                loginPasswordInput.value = '';
+            }
+        });
+
+        guestLoginBtn.addEventListener('click', async () => {
+            if (!guestEnabledStatus) {
+                try {
+                    await setDoc(doc(db, "family_data", "app_settings"), {
+                        guestEnabled: false,
+                        lastAttempt: Date.now()
+                    }, { merge: true });
+                } catch (error) {
+                    console.error("Error saving attempt log:", error);
+                }
+                alert("🔒 โหมด Guest ถูกปิดใช้งานอยู่ในขณะนี้ ระบบได้บันทึกประวัติการพยายามเข้าใช้งานแล้ว");
+                return;
+            }
+            currentMode = 'guest';
+            localStorage.setItem('shopping_mode', 'guest');
+            updateUI();
+        });
+
+        logoutBtn.addEventListener('click', () => {
+            currentMode = null;
+            localStorage.removeItem('shopping_mode');
+            updateUI();
+        });
+
+        window.setQuickItem = function(name, cat) {
+            itemNameInput.value = name;
+            itemCategorySelect.value = cat;
+            itemNameInput.focus();
+        };
+
+        function getFirestoreDocRef(mode) {
+            const docName = mode === 'family' ? 'grocery_list' : 'guest_grocery_list';
+            return doc(db, "family_data", docName);
+        }
+
+        async function saveGroceryToCloud() {
+            if (!currentMode) return;
+            try {
+                await setDoc(getFirestoreDocRef(currentMode), {
+                    items: groceryItems
+                });
+            } catch (error) {
+                console.error("Error saving grocery: ", error);
+            }
+        }
+
+        function checkAndFilterExpiredItems(items) {
+            const TWO_HOURS = 2 * 60 * 60 * 1000;
+            const now = Date.now();
+            let hasChanged = false;
+
+            const filtered = items.filter(item => {
+                if (item.completed && item.completedAt) {
+                    if (now - item.completedAt > TWO_HOURS) {
+                        hasChanged = true;
+                        return false;
+                    }
+                }
+                return true;
+            });
+
+            if (hasChanged) {
+                groceryItems = filtered;
+                saveGroceryToCloud();
+            }
+
+            return filtered;
+        }
+
+        function loadDataFromCloud(mode) {
+            if (unsubscribeSnapshot) unsubscribeSnapshot();
+
+            unsubscribeSnapshot = onSnapshot(getFirestoreDocRef(mode), (docSnap) => {
+                if (docSnap.exists()) {
+                    const rawItems = docSnap.data().items || [];
+                    groceryItems = checkAndFilterExpiredItems(rawItems);
+                } else {
+                    groceryItems = [
+                        { id: 1, name: mode === 'family' ? 'นมจืด (ครอบครัว)' : 'น้ำดื่ม (Guest)', category: 'food', completed: false, completedAt: null }
+                    ];
+                    saveGroceryToCloud();
+                }
+                renderGroceryList();
+            });
+        }
+
+        setInterval(() => {
+            if (currentMode && groceryItems.length > 0) {
+                checkAndFilterExpiredItems(groceryItems);
+                renderGroceryList();
+            }
+        }, 60 * 1000);
+
+        groceryForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const name = itemNameInput.value.trim();
+            const category = itemCategorySelect.value;
+            if (!name) return;
+
+            const newItem = {
+                id: Date.now(),
+                name: name,
+                category: category,
+                completed: false,
+                completedAt: null
+            };
+
+            groceryItems.unshift(newItem);
+            saveGroceryToCloud();
+
+            itemNameInput.value = '';
+            itemNameInput.focus();
+        });
+
+        window.toggleComplete = function(id) {
+            const now = Date.now();
+            groceryItems = groceryItems.map(item => {
+                if (item.id === id) {
+                    const nextCompleted = !item.completed;
+                    return { 
+                        ...item, 
+                        completed: nextCompleted, 
+                        completedAt: nextCompleted ? now : null 
+                    };
+                }
+                return item;
+            });
+            saveGroceryToCloud();
+        };
+
+        window.deleteItem = function(id) {
+            groceryItems = groceryItems.filter(item => item.id !== id);
+            saveGroceryToCloud();
+        };
+
+        function renderGroceryList() {
+            groceryListEl.innerHTML = '';
+            itemCountEl.innerText = `${groceryItems.length} รายการ`;
+
+            if (groceryItems.length === 0) {
+                groceryListEl.innerHTML = '<p class="text-xs text-slate-500 text-center py-8 italic">เย้! ไม่มีรายการของที่ต้องซื้อในตอนนี้</p>';
+                return;
+            }
+
+            groceryItems.forEach(item => {
+                const catInfo = categoryMeta[item.category] || categoryMeta.other;
+                const div = document.createElement('div');
+                div.className = `flex justify-between items-center p-3 rounded-xl border transition bg-slate-900/60 border-slate-700/80 ${item.completed ? 'opacity-50' : ''}`;
+                
+                div.innerHTML = `
+                    <div class="flex items-center gap-3">
+                        <input type="checkbox" ${item.completed ? 'checked' : ''} onchange="toggleComplete(${item.id})"
+                            class="w-4 h-4 accent-emerald-500 rounded cursor-pointer">
+                        <div>
+                            <p class="text-sm font-medium ${item.completed ? 'line-through text-slate-400' : 'text-slate-200'}">${item.name}</p>
+                            <span class="text-[10px] px-2 py-0.5 rounded-full border ${catInfo.color}">${catInfo.name}</span>
+                        </div>
+                    </div>
+                    <button onclick="deleteItem(${item.id})" class="text-slate-400 hover:text-red-400 text-xs px-2 py-1 cursor-pointer transition">ลบ</button>
+                `;
+                groceryListEl.appendChild(div);
+            });
+        }
+
+        // เริ่มต้นตรวจสอบสิทธิ์ตอนโหลดหน้าเว็บ
+        updateUI();
+    </script>
+</body>
+</html>
