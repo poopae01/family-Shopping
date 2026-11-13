@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Family Grocery List - ซื้อของเข้าบ้าน</title>
+    <title>Family & Guest Shopping List - ระบบซื้อของเข้าบ้าน</title>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
@@ -17,22 +17,37 @@
         <div class="bg-slate-800 border border-slate-700 rounded-2xl w-full max-w-md p-8 shadow-2xl flex flex-col gap-6">
             <div class="text-center space-y-2">
                 <div class="inline-block bg-emerald-600 text-white p-3 rounded-2xl font-bold text-2xl shadow-lg mb-2">🛒</div>
-                <h1 class="text-2xl font-bold text-slate-100">รายการซื้อของเข้าบ้าน</h1>
-                <p class="text-xs text-slate-400">กรุณากรอกรหัสผ่านกลางของบ้านเพื่อเข้าใช้งาน</p>
+                <h1 class="text-2xl font-bold text-slate-100">ระบบรายการซื้อของ</h1>
+                <p class="text-xs text-slate-400">กรอกรหัสผ่านครอบครัว หรือเข้าใช้งานในฐานะแขก</p>
             </div>
             
             <form id="login-form" class="space-y-4">
                 <div>
-                    <label class="block text-xs text-slate-400 mb-1">รหัสผ่านกลาง</label>
-                    <input type="password" id="login-password-input" placeholder="กรอกรหัสผ่าน..." required
+                    <label class="block text-xs text-slate-400 mb-1">รหัสผ่านสำหรับสมาชิกครอบครัว</label>
+                    <input type="password" id="login-password-input" placeholder="กรอกรหัสผ่านกลาง..." required
                         class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-sm text-slate-200 focus:outline-none focus:border-emerald-500 font-mono">
                 </div>
                 <div id="login-error" class="text-red-400 text-xs hidden text-center">❌ รหัสผ่านไม่ถูกต้อง กรุณาลองใหม่อีกครั้ง</div>
                 
                 <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white py-3 rounded-xl font-medium text-sm transition shadow cursor-pointer">
-                    เข้าสู่ระบบ
+                    🏠 เข้าสู่ระบบ (โหมดครอบครัว)
                 </button>
             </form>
+
+            <div id="guest-container">
+                <div class="relative flex py-2 items-center">
+                    <div class="flex-grow border-t border-slate-700"></div>
+                    <span class="flex-shrink mx-4 text-xs text-slate-500">หรือ</span>
+                    <div class="flex-grow border-t border-slate-700"></div>
+                </div>
+
+                <button id="guest-login-btn" class="w-full bg-slate-700 hover:bg-slate-600 text-slate-200 py-3 rounded-xl font-medium text-sm transition shadow cursor-pointer">
+                    👥 เข้าใช้งานแบบโหมด Guest (บุคคลภายนอก)
+                </button>
+            </div>
+            <div id="guest-disabled-notice" class="text-center text-xs text-red-400/80 hidden bg-red-500/10 border border-red-500/20 py-2.5 rounded-xl">
+                🔒 โหมด Guest ถูกปิดใช้งานโดยผู้ดูแลระบบของบ้าน
+            </div>
         </div>
     </div>
 
@@ -42,18 +57,18 @@
         <header class="bg-slate-800 border-b border-slate-700 py-4 px-6 shadow-md">
             <div class="max-w-3xl mx-auto flex justify-between items-center">
                 <div class="flex items-center space-x-3">
-                    <div class="bg-emerald-600 text-white p-2.5 rounded-xl font-bold text-xl shadow">🛒</div>
+                    <div id="header-icon" class="bg-emerald-600 text-white p-2.5 rounded-xl font-bold text-xl shadow">🛒</div>
                     <div>
-                        <h1 class="text-xl font-bold tracking-wide">รายการซื้อของเข้าบ้าน</h1>
-                        <p class="text-xs text-slate-400">ซิงค์เรียลไทม์</p>
+                        <h1 id="header-title" class="text-xl font-bold tracking-wide">รายการซื้อของเข้าบ้าน</h1>
+                        <p id="header-subtitle" class="text-xs text-slate-400">ซิงค์เรียลไทม์ • โหมดครอบครัว</p>
                     </div>
                 </div>
                 <div class="flex items-center gap-3">
-                    <div class="text-xs bg-slate-700/60 border border-slate-600 px-3 py-1.5 rounded-lg text-emerald-400 font-medium">
-                        🟢 พร้อมใช้งาน
+                    <div id="mode-badge" class="text-xs bg-emerald-500/10 border border-emerald-500/30 px-3 py-1.5 rounded-lg text-emerald-400 font-medium">
+                        🏠 ครอบครัว
                     </div>
                     <button id="logout-btn" class="bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 text-xs px-3 py-1.5 rounded-lg font-medium transition cursor-pointer">
-                        ออกจากระบบ
+                        เปลี่ยนโหมด / ออก
                     </button>
                 </div>
             </div>
@@ -62,6 +77,21 @@
         <!-- MAIN CONTAINER -->
         <main class="flex-1 max-w-3xl w-full mx-auto p-4 sm:p-6 flex flex-col gap-6 w-full">
             
+            <!-- ADMIN SETTING: GUEST TOGGLE (แสดงเฉพาะตอนเข้าโหมดครอบครัว) -->
+            <div id="admin-settings-card" class="bg-slate-800/80 border border-slate-700 rounded-2xl p-4 shadow-lg flex justify-between items-center hidden">
+                <div class="flex items-center gap-3">
+                    <span class="text-lg">🛡️</span>
+                    <div>
+                        <h3 class="text-xs font-bold text-slate-200">ตั้งค่าความปลอดภัยโหมด Guest</h3>
+                        <p class="text-[11px] text-slate-400">เปิด/ปิด อนุญาตให้บุคคลภายนอกเข้าใช้งานโหมด Guest</p>
+                    </div>
+                </div>
+                <label class="relative inline-flex items-center cursor-pointer">
+                    <input type="checkbox" id="guest-toggle-switch" class="sr-only peer">
+                    <div class="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600"></div>
+                </label>
+            </div>
+
             <!-- ADD ITEM FORM & QUICK BUTTONS -->
             <div class="bg-slate-800 border border-slate-700 rounded-2xl p-5 shadow-xl flex flex-col gap-4">
                 <h2 class="text-sm font-bold text-emerald-400">➕ เพิ่มรายการของที่ต้องซื้อ</h2>
@@ -117,7 +147,7 @@
         </main>
 
         <footer class="bg-slate-800 border-t border-slate-700 py-3 text-center text-xs text-slate-500">
-            Family Grocery Cloud • พัฒนาจากโปรเจกต์ครอบครัว 🚀
+            Family & Guest Shopping Cloud • พัฒนาต่อยอดจากโปรเจกต์ครอบครัว 🚀
         </footer>
     </div>
 
@@ -140,6 +170,11 @@
 
         const CENTRAL_PASSWORD = "Tp240356";
         let groceryItems = [];
+        let unsubscribeSnapshot = null;
+        let unsubscribeSettings = null;
+        let guestEnabledStatus = true; // ค่าเริ่มต้นอนุญาต Guest
+
+        let currentMode = localStorage.getItem('shopping_mode') || null;
 
         const categoryMeta = {
             food: { name: '🍲 อาหาร/ของสด', color: 'bg-amber-500/10 text-amber-300 border-amber-500/30' },
@@ -152,7 +187,17 @@
         const loginForm = document.getElementById('login-form');
         const loginPasswordInput = document.getElementById('login-password-input');
         const loginError = document.getElementById('login-error');
+        const guestLoginBtn = document.getElementById('guest-login-btn');
+        const guestContainer = document.getElementById('guest-container');
+        const guestDisabledNotice = document.getElementById('guest-disabled-notice');
         const logoutBtn = document.getElementById('logout-btn');
+
+        const headerTitle = document.getElementById('header-title');
+        const headerSubtitle = document.getElementById('header-subtitle');
+        const modeBadge = document.getElementById('mode-badge');
+        const headerIcon = document.getElementById('header-icon');
+        const adminSettingsCard = document.getElementById('admin-settings-card');
+        const guestToggleSwitch = document.getElementById('guest-toggle-switch');
 
         const itemNameInput = document.getElementById('item-name');
         const itemCategorySelect = document.getElementById('item-category');
@@ -160,35 +205,101 @@
         const groceryListEl = document.getElementById('grocery-list');
         const itemCountEl = document.getElementById('item-count');
 
-        // ฟังก์ชันตรวจสอบสถานะการเข้าสู่ระบบแบบกระชับ
-        function updateAuthUI() {
-            const isAuth = localStorage.getItem('grocery_auth') === 'true';
-            if (isAuth) {
-                loginScreen.classList.add('hidden');
-                appWrapper.classList.remove('hidden');
+        // ฟังสถานะเปิด/ปิด Guest จาก Firebase ตลอดเวลาที่อยู่หน้า Login
+        function listenAppSettings() {
+            if (unsubscribeSettings) unsubscribeSettings();
+            unsubscribeSettings = onSnapshot(doc(db, "family_data", "app_settings"), (docSnap) => {
+                if (docSnap.exists()) {
+                    guestEnabledStatus = docSnap.data().guestEnabled !== false; // ถ้าไม่ได้เซ็ต ให้ถือว่าเปิด (true)
+                } else {
+                    guestEnabledStatus = true;
+                }
+                updateLoginScreenGuestUI();
+            });
+        }
+
+        function updateLoginScreenGuestUI() {
+            if (guestEnabledStatus) {
+                guestContainer.classList.remove('hidden');
+                guestDisabledNotice.classList.add('hidden');
             } else {
-                loginScreen.classList.remove('hidden');
-                appWrapper.classList.add('hidden');
+                guestContainer.classList.add('hidden');
+                guestDisabledNotice.classList.remove('hidden');
             }
         }
 
+        function updateUI() {
+            if (!currentMode) {
+                loginScreen.classList.remove('hidden');
+                appWrapper.classList.add('hidden');
+                if (unsubscribeSnapshot) unsubscribeSnapshot();
+                listenAppSettings();
+            } else {
+                loginScreen.classList.add('hidden');
+                appWrapper.classList.remove('hidden');
+                if (unsubscribeSettings) unsubscribeSettings();
+
+                if (currentMode === 'family') {
+                    headerTitle.innerText = "รายการซื้อของเข้าบ้าน";
+                    headerSubtitle.innerText = "ซิงค์เรียลไทม์ • โหมดครอบครัว (Admin)";
+                    modeBadge.className = "text-xs bg-emerald-500/10 border border-emerald-500/30 px-3 py-1.5 rounded-lg text-emerald-400 font-medium";
+                    modeBadge.innerText = "🏠 ครอบครัว";
+                    headerIcon.className = "bg-emerald-600 text-white p-2.5 rounded-xl font-bold text-xl shadow";
+                    adminSettingsCard.classList.remove('hidden'); // แสดงสวิตช์ตั้งค่าเฉพาะครอบครัว
+                    guestToggleSwitch.checked = guestEnabledStatus;
+                } else {
+                    headerTitle.innerText = "รายการซื้อของ (โหมด Guest)";
+                    headerSubtitle.innerText = "ซิงค์เรียลไทม์ • สำหรับบุคคลภายนอก/แขก";
+                    modeBadge.className = "text-xs bg-sky-500/10 border border-sky-500/30 px-3 py-1.5 rounded-lg text-sky-400 font-medium";
+                    modeBadge.innerText = "👥 โหมด Guest";
+                    headerIcon.className = "bg-sky-600 text-white p-2.5 rounded-xl font-bold text-xl shadow";
+                    adminSettingsCard.classList.add('hidden'); // ซ่อนสวิตช์ตั้งค่าในโหมด Guest
+                }
+
+                loadDataFromCloud(currentMode);
+            }
+        }
+
+        // กดเปลี่ยนสวิตช์เปิด/ปิด Guest
+        guestToggleSwitch.addEventListener('change', async () => {
+            guestEnabledStatus = guestToggleSwitch.checked;
+            try {
+                await setDoc(doc(db, "family_data", "app_settings"), {
+                    guestEnabled: guestEnabledStatus
+                }, { merge: true });
+            } catch (error) {
+                console.error("Error updating settings:", error);
+            }
+        });
+
         loginForm.addEventListener('submit', (e) => {
             e.preventDefault();
-            const enteredVal = loginPasswordInput.value.trim();
-            if (enteredVal === CENTRAL_PASSWORD) {
-                localStorage.setItem('grocery_auth', 'true');
+            if (loginPasswordInput.value.trim() === CENTRAL_PASSWORD) {
+                currentMode = 'family';
+                localStorage.setItem('shopping_mode', 'family');
                 loginPasswordInput.value = '';
                 loginError.classList.add('hidden');
-                updateAuthUI();
+                updateUI();
             } else {
                 loginError.classList.remove('hidden');
                 loginPasswordInput.value = '';
             }
         });
 
+        guestLoginBtn.addEventListener('click', () => {
+            if (!guestEnabledStatus) {
+                alert("โหมด Guest ถูกปิดใช้งานอยู่ในขณะนี้");
+                return;
+            }
+            currentMode = 'guest';
+            localStorage.setItem('shopping_mode', 'guest');
+            updateUI();
+        });
+
         logoutBtn.addEventListener('click', () => {
-            localStorage.removeItem('grocery_auth');
-            updateAuthUI();
+            currentMode = null;
+            localStorage.removeItem('shopping_mode');
+            updateUI();
         });
 
         window.setQuickItem = function(name, cat) {
@@ -197,9 +308,15 @@
             itemNameInput.focus();
         };
 
+        function getFirestoreDocRef(mode) {
+            const docName = mode === 'family' ? 'grocery_list' : 'guest_grocery_list';
+            return doc(db, "family_data", docName);
+        }
+
         async function saveGroceryToCloud() {
+            if (!currentMode) return;
             try {
-                await setDoc(doc(db, "family_data", "grocery_list"), {
+                await setDoc(getFirestoreDocRef(currentMode), {
                     items: groceryItems
                 });
             } catch (error) {
@@ -230,22 +347,25 @@
             return filtered;
         }
 
-        onSnapshot(doc(db, "family_data", "grocery_list"), (docSnap) => {
-            if (docSnap.exists()) {
-                const rawItems = docSnap.data().items || [];
-                groceryItems = checkAndFilterExpiredItems(rawItems);
-            } else {
-                groceryItems = [
-                    { id: 1, name: 'นมจืด', category: 'food', completed: false, completedAt: null },
-                    { id: 2, name: 'ไข่ไก่', category: 'food', completed: false, completedAt: null }
-                ];
-                saveGroceryToCloud();
-            }
-            renderGroceryList();
-        });
+        function loadDataFromCloud(mode) {
+            if (unsubscribeSnapshot) unsubscribeSnapshot();
+
+            unsubscribeSnapshot = onSnapshot(getFirestoreDocRef(mode), (docSnap) => {
+                if (docSnap.exists()) {
+                    const rawItems = docSnap.data().items || [];
+                    groceryItems = checkAndFilterExpiredItems(rawItems);
+                } else {
+                    groceryItems = [
+                        { id: 1, name: mode === 'family' ? 'นมจืด (ครอบครัว)' : 'น้ำดื่ม (Guest)', category: 'food', completed: false, completedAt: null }
+                    ];
+                    saveGroceryToCloud();
+                }
+                renderGroceryList();
+            });
+        }
 
         setInterval(() => {
-            if (groceryItems.length > 0) {
+            if (currentMode && groceryItems.length > 0) {
                 checkAndFilterExpiredItems(groceryItems);
                 renderGroceryList();
             }
@@ -322,8 +442,7 @@
             });
         }
 
-        // เริ่มต้นตรวจสอบสิทธิ์ทันทีที่โหลดหน้าเว็บ
-        updateAuthUI();
+        updateUI();
     </script>
 </body>
 </html>
