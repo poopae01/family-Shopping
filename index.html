@@ -221,7 +221,7 @@
         const groceryListEl = document.getElementById('grocery-list');
         const itemCountEl = document.getElementById('item-count');
 
-        // ฟังก์ชันฟังสถานะสิทธิ์ Guest ตลอดเวลา (ไม่ว่าจะอยู่หน้า Login หรือกำลังใช้งานในโหมด Guest อยู่)
+        // ฟังก์ชันดักฟังสถานะเปิด/ปิด Guest ทำงานตลอดเวลาทั้งตอนอยู่หน้า Login และตอนอยู่ในโหมด Guest
         function listenAppSettings() {
             if (unsubscribeSettings) unsubscribeSettings();
             unsubscribeSettings = onSnapshot(doc(db, "family_data", "app_settings"), (docSnap) => {
@@ -234,7 +234,7 @@
                     lastAttemptTime = null;
                 }
 
-                // ถ้ากำลังใช้งานอยู่บน "โหมด Guest" แล้วเจ้าของบ้านกดปิดสวิตช์ ให้ดีดหลุดออกหน้า Login ทันที!
+                // ถ้าเครื่องนี้กำลังเปิดโหมด Guest อยู่ แล้วเจ้าของบ้านกดปิดสวิตช์ ดีดกลับหน้า Login ทันที!
                 if (currentMode === 'guest' && !guestEnabledStatus) {
                     alert("⚠️ เจ้าของบ้านได้ปิดการใช้งานโหมด Guest แล้ว ระบบจะนำคุณออกจากระบบ");
                     currentMode = null;
@@ -272,17 +272,16 @@
         }
 
         function updateUI() {
+            // บังคับเรียกฟังก์ชันฟังสถานะความปลอดภัยทุกครั้งที่มีการเปลี่ยนหน้า/เปลี่ยนโหมด
+            listenAppSettings();
+
             if (!currentMode) {
                 loginScreen.classList.remove('hidden');
                 appWrapper.classList.add('hidden');
                 if (unsubscribeSnapshot) unsubscribeSnapshot();
-                listenAppSettings(); // เปิดฟังค่าที่หน้า Login
             } else {
                 loginScreen.classList.add('hidden');
                 appWrapper.classList.remove('hidden');
-                
-                // เริ่มเปิดฟังค่าการตั้งค่าแม้จะอยู่ในโหมด Guest หรือครอบครัว เพื่อตรวจจับการปิดสวิตช์แบบ Realtime
-                listenAppSettings();
 
                 if (currentMode === 'family') {
                     headerTitle.innerText = "รายการซื้อของเข้าบ้าน";
@@ -449,7 +448,7 @@
                 name: name,
                 category: category,
                 completed: false,
-                completedAt: null
+                    completedAt: null
             };
 
             groceryItems.unshift(newItem);
