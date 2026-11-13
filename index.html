@@ -77,7 +77,19 @@
         <!-- MAIN CONTAINER -->
         <main class="flex-1 max-w-3xl w-full mx-auto p-4 sm:p-6 flex flex-col gap-6 w-full">
             
-            <!-- ADMIN SETTING: GUEST TOGGLE (แสดงเฉพาะตอนเข้าโหมดครอบครัว) -->
+            <!-- SECURITY ALERT LOG (แสดงเฉพาะเจ้าของบ้าน เมื่อมีคนพยายามแอบเข้าตอนปิด) -->
+            <div id="security-alert-card" class="bg-red-500/10 border border-red-500/30 rounded-2xl p-4 shadow-lg hidden flex flex-col gap-2">
+                <div class="flex justify-between items-center">
+                    <div class="flex items-center gap-2">
+                        <span class="text-red-400 text-lg">⚠️</span>
+                        <h3 class="text-xs font-bold text-red-300">แจ้งเตือนความปลอดภัย: มีความพยายามเข้าใช้งานโหมด Guest</h3>
+                    </div>
+                    <button id="clear-logs-btn" class="text-[11px] text-slate-400 hover:text-slate-200 underline cursor-pointer">ล้างประวัติ</button>
+                </div>
+                <p id="security-log-text" class="text-xs text-slate-300 pl-6">ยังไม่มีประวัติการพยายามบุกรุก</p>
+            </div>
+
+            <!-- ADMIN SETTING: GUEST TOGGLE -->
             <div id="admin-settings-card" class="bg-slate-800/80 border border-slate-700 rounded-2xl p-4 shadow-lg flex justify-between items-center hidden">
                 <div class="flex items-center gap-3">
                     <span class="text-lg">🛡️</span>
@@ -172,7 +184,8 @@
         let groceryItems = [];
         let unsubscribeSnapshot = null;
         let unsubscribeSettings = null;
-        let guestEnabledStatus = true; // ค่าเริ่มต้นอนุญาต Guest
+        let guestEnabledStatus = true;
+        let lastAttemptTime = null;
 
         let currentMode = localStorage.getItem('shopping_mode') || null;
 
@@ -198,6 +211,9 @@
         const headerIcon = document.getElementById('header-icon');
         const adminSettingsCard = document.getElementById('admin-settings-card');
         const guestToggleSwitch = document.getElementById('guest-toggle-switch');
+        const securityAlertCard = document.getElementById('security-alert-card');
+        const securityLogText = document.getElementById('security-log-text');
+        const clearLogsBtn = document.getElementById('clear-logs-btn');
 
         const itemNameInput = document.getElementById('item-name');
         const itemCategorySelect = document.getElementById('item-category');
@@ -205,16 +221,19 @@
         const groceryListEl = document.getElementById('grocery-list');
         const itemCountEl = document.getElementById('item-count');
 
-        // ฟังสถานะเปิด/ปิด Guest จาก Firebase ตลอดเวลาที่อยู่หน้า Login
         function listenAppSettings() {
             if (unsubscribeSettings) unsubscribeSettings();
             unsubscribeSettings = onSnapshot(doc(db, "family_data", "app_settings"), (docSnap) => {
                 if (docSnap.exists()) {
-                    guestEnabledStatus = docSnap.data().guestEnabled !== false; // ถ้าไม่ได้เซ็ต ให้ถือว่าเปิด (true)
+                    const data = docSnap.data();
+                    guestEnabledStatus = data.guestEnabled !== false;
+                    lastAttemptTime = data.lastAttempt || null;
                 } else {
                     guestEnabledStatus = true;
+                    lastAttemptTime = null;
                 }
                 updateLoginScreenGuestUI();
+                updateSecurityAlertUI();
             });
         }
 
@@ -225,6 +244,19 @@
             } else {
                 guestContainer.classList.add('hidden');
                 guestDisabledNotice.classList.remove('hidden');
+            }
+        }
+
+        function updateSecurityAlertUI() {
+            if (currentMode === 'family' && lastAttemptTime) {
+                const timeString = new Date(lastAttemptTime).toLocaleString('th-TH', { 
+                    dateStyle: 'short', 
+                    timeStyle: 'medium' 
+                });
+                securityLogText.innerText = `มีผู้พยายามเข้าใช้งานล่าสุดเมื่อ: ${timeString}`;
+                securityAlertCard.classList.remove('hidden');
+            } else {
+                securityAlertCard.classList.add('hidden');
             }
         }
 
@@ -245,30 +277,46 @@
                     modeBadge.className = "text-xs bg-emerald-500/10 border border-emerald-500/30 px-3 py-1.5 rounded-lg text-emerald-400 font-medium";
                     modeBadge.innerText = "🏠 ครอบครัว";
                     headerIcon.className = "bg-emerald-600 text-white p-2.5 rounded-xl font-bold text-xl shadow";
-                    adminSettingsCard.classList.remove('hidden'); // แสดงสวิตช์ตั้งค่าเฉพาะครอบครัว
+                    adminSettingsCard.classList.remove('hidden');
                     guestToggleSwitch.checked = guestEnabledStatus;
+                    listenAppSettings(); // เปิดฟังค่าต่อเพื่อให้หน้า Admin เห็นแจ้งเตือน Realtime
                 } else {
                     headerTitle.innerText = "รายการซื้อของ (โหมด Guest)";
                     headerSubtitle.innerText = "ซิงค์เรียลไทม์ • สำหรับบุคคลภายนอก/แขก";
                     modeBadge.className = "text-xs bg-sky-500/10 border border-sky-500/30 px-3 py-1.5 rounded-lg text-sky-400 font-medium";
                     modeBadge.innerText = "👥 โหมด Guest";
                     headerIcon.className = "bg-sky-600 text-white p-2.5 rounded-xl font-bold text-xl shadow";
-                    adminSettingsCard.classList.add('hidden'); // ซ่อนสวิตช์ตั้งค่าในโหมด Guest
+                    adminSettingsCard.classList.add('hidden');
+                    securityAlertCard.classList.add('hidden');
                 }
 
                 loadDataFromCloud(currentMode);
             }
         }
 
-        // กดเปลี่ยนสวิตช์เปิด/ปิด Guest
         guestToggleSwitch.addEventListener('change', async () => {
             guestEnabledStatus = guestToggleSwitch.checked;
             try {
                 await setDoc(doc(db, "family_data", "app_settings"), {
-                    guestEnabled: guestEnabledStatus
+                    guestEnabled: guestEnabledStatus,
+                    lastAttempt: lastAttemptTime
                 }, { merge: true });
             } catch (error) {
                 console.error("Error updating settings:", error);
+            }
+        });
+
+        // ปุ่มล้างประวัติแจ้งเตือนความปลอดภัย
+        clearLogsBtn.addEventListener('click', async () => {
+            lastAttemptTime = null;
+            try {
+                await setDoc(doc(db, "family_data", "app_settings"), {
+                    guestEnabled: guestEnabledStatus,
+                    lastAttempt: null
+                }, { merge: true });
+                securityAlertCard.classList.add('hidden');
+            } catch (error) {
+                console.error("Error clearing log:", error);
             }
         });
 
@@ -286,9 +334,19 @@
             }
         });
 
-        guestLoginBtn.addEventListener('click', () => {
+        // เมื่อมีคนพยายามกดเข้าโหมด Guest ตอนที่ปิดสวิตช์อยู่
+        guestLoginBtn.addEventListener('click', async () => {
             if (!guestEnabledStatus) {
-                alert("โหมด Guest ถูกปิดใช้งานอยู่ในขณะนี้");
+                // บันทึกเวลาที่พยายามเข้าขึ้น Cloud ทันที
+                try {
+                    await setDoc(doc(db, "family_data", "app_settings"), {
+                        guestEnabled: false,
+                        lastAttempt: Date.now()
+                    }, { merge: true });
+                } catch (error) {
+                    console.error("Error saving attempt log:", error);
+                }
+                alert("🔒 โหมด Guest ถูกปิดใช้งานอยู่ในขณะนี้ ระบบได้บันทึกประวัติการพยายามเข้าใช้งานแล้ว");
                 return;
             }
             currentMode = 'guest';
